@@ -1,6 +1,7 @@
 import {Dialog, DialogPanel, DialogTitle} from '@headlessui/react';
 import React, {useEffect, useState} from 'react';
-import { Todo } from '../types/Todo';
+import {Todo} from '../types/Todo';
+import DOMPurify from "dompurify";
 
 interface Props {
     open: boolean;
@@ -10,17 +11,24 @@ interface Props {
     initialTodo?: Omit<Todo, 'id'>;
 }
 
-const TodoFormModal: React.FC<Props> = ({ open, onClose, onSubmit, listId, initialTodo }) => {
+const TodoFormModal: React.FC<Props> = ({open, onClose, onSubmit, listId, initialTodo}) => {
     const [title, setTitle] = useState('');
     const [additionalInfo, setAdditionalInfo] = useState('');
     const [dueDate, setDueDate] = useState('');
     const [completed, setCompleted] = useState(false);
+    const [errors, setErrors] = useState<{ title?: string }>({});
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (title.length === 0 || title.length > 255) return;
+
+        const sanitizedTitle = DOMPurify.sanitize(title);
+        const sanitizedAdditionalInfo = DOMPurify.sanitize(additionalInfo);
+
         onSubmit({
-            title,
-            additional_info: additionalInfo,
+            title: sanitizedTitle,
+            additional_info: sanitizedAdditionalInfo,
             due_date: dueDate ? new Date(dueDate).toISOString() : '',
             completed,
             listId
@@ -36,6 +44,20 @@ const TodoFormModal: React.FC<Props> = ({ open, onClose, onSubmit, listId, initi
         onClose();
     };
 
+    const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const input = e.target.value;
+
+        if (input.length > 255) {
+            setErrors({title: 'Title must be less than 255 characters'});
+        } else if (input.length === 0) {
+            setErrors({title: 'Title is required'});
+        } else {
+            setErrors({});
+        }
+
+        setTitle(input);
+    };
+
     useEffect(() => {
         if (initialTodo) {
             setTitle(initialTodo.title);
@@ -43,6 +65,7 @@ const TodoFormModal: React.FC<Props> = ({ open, onClose, onSubmit, listId, initi
             setDueDate(new Date(initialTodo.due_date).toISOString().split('T')[0]);
             setCompleted(initialTodo.completed);
         }
+        setErrors({});
     }, [initialTodo]);
 
     return (
@@ -61,9 +84,11 @@ const TodoFormModal: React.FC<Props> = ({ open, onClose, onSubmit, listId, initi
                                 required
                                 type="text"
                                 value={title}
-                                onChange={(e) => setTitle(e.target.value)}
+                                onChange={handleTitleChange}
                                 className="w-full p-2 border rounded-lg"
+                                maxLength={255}
                             />
+                            {errors?.title && <p className="text-red-500 text-sm">{errors.title}</p>}
                         </div>
 
                         <div>
