@@ -1,0 +1,12 @@
+{
+  "name": "go-do-something",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
+    "start:frontend": "cd frontend && npm run dev",
+    "start:backend": "cd backend && backend.exe"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
