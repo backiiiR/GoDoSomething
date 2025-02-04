@@ -30,10 +30,13 @@ func AllTodosByList(listID int) ([]Todo, error) {
 		}
 	}(rows)
 
-	var todos []Todo
+	todos := make([]Todo, 0)
 	for rows.Next() {
 		var t Todo
-		if err := rows.Scan(&t.ID, &t.Title, &t.AdditionalInfo, &t.DueDate, &t.Completed, &t.ListID); err != nil {
+		var dueDate string
+		if err := rows.Scan(&t.ID, &t.Title, &t.AdditionalInfo, &dueDate, &t.Completed, &t.ListID); err == nil {
+			t.DueDate, _ = time.Parse("2006-01-02", dueDate)
+		} else {
 			log.Println(err)
 			continue
 		}
@@ -44,19 +47,21 @@ func AllTodosByList(listID int) ([]Todo, error) {
 }
 
 func CreateTodo(todo Todo, listID int) (int64, error) {
-	/*res, err := db.DB.Exec(
-		"INSERT INTO todos (title, additional_info, due_date, completed, list_id) VALUES (?, ?, ?, ?, ?)",
-		todo.Title, todo.AdditionalInfo, todo.DueDate, todo.Completed, todo.ListID)
-	if err != nil {
-		return 0, err
-	}
+	if todo.DueDate.IsZero() {
+		res, err := db.DB.Exec(
+			"INSERT INTO todos (title, additional_info, due_date, completed, list_id) VALUES (?, ?, NULL, ?, ?)",
+			todo.Title, todo.AdditionalInfo, todo.Completed, listID)
+		if err != nil {
+			return 0, err
+		}
 
-	id, err := res.LastInsertId()
-	if err != nil {
-		return 0, err
-	}
+		id, err := res.LastInsertId()
+		if err != nil {
+			return 0, err
+		}
 
-	return id, nil*/
+		return id, nil
+	}
 
 	res, err := db.DB.Exec(
 		"INSERT INTO todos (title, additional_info, due_date, completed, list_id) VALUES (?, ?, ?, ?, ?)",
@@ -74,17 +79,19 @@ func CreateTodo(todo Todo, listID int) (int64, error) {
 }
 
 func UpdateTodo(todo Todo, listID int) error {
-	/*_, err := db.DB.Exec(
-		"UPDATE todos SET title = ?, additional_info = ?, due_date = ?, completed = ? WHERE id = ?",
-		todo.Title, todo.AdditionalInfo, todo.DueDate, todo.Completed, todo.ID)
-	if err != nil {
-		return err
+	if todo.DueDate.IsZero() {
+		_, err := db.DB.Exec(
+			"INSERT INTO todos (title, additional_info, due_date, completed, list_id) VALUES (?, ?, NULL, ?, ?)",
+			todo.Title, todo.AdditionalInfo, todo.Completed, listID)
+		if err != nil {
+			return err
+		}
+
+		return nil
 	}
 
-	return nil*/
-
 	_, err := db.DB.Exec(
-		"UPDATE todos SET title = ?, additional_info = ?, due_date = ?, completed = ? WHERE id = ? WHERE list_id = ?",
+		"UPDATE todos SET title = ?, additional_info = ?, due_date = ?, completed = ? WHERE id = ? AND list_id = ?",
 		todo.Title, todo.AdditionalInfo, todo.DueDate, todo.Completed, todo.ID, listID)
 	if err != nil {
 		return err
@@ -101,7 +108,7 @@ func DeleteTodo(id int, listID int) error {
 
 	return nil*/
 
-	_, err := db.DB.Exec("DELETE FROM todos WHERE id = ? WHERE list_id = ?", id, listID)
+	_, err := db.DB.Exec("DELETE FROM todos WHERE id = ? AND list_id = ?", id, listID)
 	if err != nil {
 		return err
 	}

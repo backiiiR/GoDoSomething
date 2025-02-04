@@ -20,6 +20,7 @@ func GetTodosByList(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(todos)
+	w.WriteHeader(http.StatusOK)
 }
 
 func CreateTodoForList(w http.ResponseWriter, r *http.Request) {
@@ -42,6 +43,7 @@ func CreateTodoForList(w http.ResponseWriter, r *http.Request) {
 
 	todo.ID = int(id)
 	json.NewEncoder(w).Encode(todo)
+	w.WriteHeader(http.StatusCreated)
 }
 
 func UpdateTodoForList(w http.ResponseWriter, r *http.Request) {
@@ -67,6 +69,7 @@ func UpdateTodoForList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	json.NewEncoder(w).Encode(todo)
 	w.WriteHeader(http.StatusOK)
 }
 

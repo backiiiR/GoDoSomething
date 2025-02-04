@@ -17,6 +17,7 @@ func GetLists(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.NewEncoder(w).Encode(lists)
+	w.WriteHeader(http.StatusOK)
 }
 
 func CreateList(w http.ResponseWriter, r *http.Request) {
@@ -33,6 +34,8 @@ func CreateList(w http.ResponseWriter, r *http.Request) {
 	}
 
 	list.ID = int(id)
+	json.NewEncoder(w).Encode(list)
+	w.WriteHeader(http.StatusCreated)
 }
 
 func UpdateList(w http.ResponseWriter, r *http.Request) {
@@ -70,6 +73,7 @@ func UpdateList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	json.NewEncoder(w).Encode(list)
 	w.WriteHeader(http.StatusOK)
 }
 
