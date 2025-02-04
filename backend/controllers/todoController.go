@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 func GetTodosByList(w http.ResponseWriter, r *http.Request) {
@@ -27,13 +28,36 @@ func CreateTodoForList(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	listID, _ := strconv.Atoi(params["lid"])
 
-	var todo models.Todo
-	if err := json.NewDecoder(r.Body).Decode(&todo); err != nil {
+	var rawTodo struct {
+		Title          string `json:"title"`
+		AdditionalInfo string `json:"additional_info"`
+		DueDate        string `json:"due_date"` // Accepts string from JSON
+		Completed      bool   `json:"completed"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&rawTodo); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	// todo.ListID = listID
+	var parsedDate time.Time
+	if rawTodo.DueDate != "" {
+		var err error
+		parsedDate, err = time.Parse(time.RFC3339, rawTodo.DueDate)
+		if err != nil {
+			http.Error(w, "Invalid date format. Use RFC3339 (e.g. 2023-12-31T12:00:00Z)", http.StatusBadRequest)
+			return
+		}
+	}
+
+	todo := models.Todo{
+		Title:          rawTodo.Title,
+		AdditionalInfo: rawTodo.AdditionalInfo,
+		DueDate:        parsedDate,
+		Completed:      rawTodo.Completed,
+		ListID:         listID,
+	}
+
 	id, err := models.CreateTodo(todo, listID)
 
 	if err != nil {
@@ -49,8 +73,6 @@ func CreateTodoForList(w http.ResponseWriter, r *http.Request) {
 func UpdateTodoForList(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	listID, _ := strconv.Atoi(params["lid"])
-
-	//id := r.URL.Query().Get("id")
 	id := params["id"]
 
 	if id == "" {
@@ -58,10 +80,37 @@ func UpdateTodoForList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var todo models.Todo
-	if err := json.NewDecoder(r.Body).Decode(&todo); err != nil {
+	idInt, _ := strconv.Atoi(id)
+
+	var rawTodo struct {
+		Title          string `json:"title"`
+		AdditionalInfo string `json:"additional_info"`
+		DueDate        string `json:"due_date"` // Accepts string from JSON
+		Completed      bool   `json:"completed"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&rawTodo); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
+	}
+
+	var parsedDate time.Time
+	if rawTodo.DueDate != "" {
+		var err error
+		parsedDate, err = time.Parse(time.RFC3339, rawTodo.DueDate)
+		if err != nil {
+			http.Error(w, "Invalid date format. Use RFC3339 (e.g. 2023-12-31T12:00:00Z)", http.StatusBadRequest)
+			return
+		}
+	}
+
+	todo := models.Todo{
+		ID:             idInt,
+		Title:          rawTodo.Title,
+		AdditionalInfo: rawTodo.AdditionalInfo,
+		DueDate:        parsedDate,
+		Completed:      rawTodo.Completed,
+		ListID:         listID,
 	}
 
 	if err := models.UpdateTodo(todo, listID); err != nil {

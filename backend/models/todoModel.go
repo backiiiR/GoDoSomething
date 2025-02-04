@@ -33,9 +33,17 @@ func AllTodosByList(listID int) ([]Todo, error) {
 	todos := make([]Todo, 0)
 	for rows.Next() {
 		var t Todo
-		var dueDate string
+		var dueDate sql.NullString
 		if err := rows.Scan(&t.ID, &t.Title, &t.AdditionalInfo, &dueDate, &t.Completed, &t.ListID); err == nil {
-			t.DueDate, _ = time.Parse("2006-01-02", dueDate)
+			if dueDate.Valid {
+				t.DueDate, err = time.Parse("2006-01-02", dueDate.String)
+				if err != nil {
+					log.Println(err)
+					continue
+				}
+			} else {
+				t.DueDate = time.Time{}
+			}
 		} else {
 			log.Println(err)
 			continue
