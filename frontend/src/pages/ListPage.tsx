@@ -49,22 +49,6 @@ const ListPage: React.FC = () => {
         }
     };
 
-    /*const handleToggle = async (id: number) => {
-        try {
-            const todo = todos.find((todo) => todo.id === id);
-            if (!todo) return;
-
-            const updatedTodo = await updateTodo({
-                ...todo,
-                completed: !todo.completed,
-            });
-
-            setTodos(todos.map((todo) => (todo.id === id ? updatedTodo : todo)));
-        } catch (error) {
-            console.error(error);
-        }
-    };*/
-
     const handleDelete = async (id: number) => {
         const todo = todos.find((todo) => todo.id === id);
 

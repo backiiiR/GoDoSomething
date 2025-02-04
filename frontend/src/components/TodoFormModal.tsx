@@ -31,7 +31,7 @@ const TodoFormModal: React.FC<Props> = ({open, onClose, onSubmit, listId, initia
             additional_info: sanitizedAdditionalInfo,
             due_date: dueDate ? new Date(dueDate).toISOString() : '',
             completed,
-            listId
+            list_id: listId,
         });
         resetForm();
     };
@@ -105,7 +105,7 @@ const TodoFormModal: React.FC<Props> = ({open, onClose, onSubmit, listId, initia
                             <label className="block text-sm font-medium mb-1">Due Date</label>
                             <input
                                 type="date"
-                                value={dueDate}
+                                value={dueDate !== '0001-01-01' ? dueDate : ''}
                                 onChange={(e) => setDueDate(e.target.value)}
                                 className="w-full p-2 border rounded-lg"
                                 min={new Date().toISOString().split('T')[0]}

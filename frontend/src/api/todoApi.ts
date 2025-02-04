@@ -9,7 +9,7 @@ export async function fetchTodos(listId: number): Promise<Todo[]> {
 }
 
 export async function createTodo(todo: Omit<Todo, "id">): Promise<Todo> {
-    const response = await fetch(`${BASE_URL}/lists/${todo.listId}/todos`, {
+    const response = await fetch(`${BASE_URL}/lists/${todo.list_id}/todos`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -21,7 +21,7 @@ export async function createTodo(todo: Omit<Todo, "id">): Promise<Todo> {
 }
 
 export async function updateTodo(todo: Todo): Promise<Todo> {
-    const response = await fetch(`${BASE_URL}/lists/${todo.listId}/todos/${todo.id}`, {
+    const response = await fetch(`${BASE_URL}/lists/${todo.list_id}/todos/${todo.id}`, {
         method: "PUT",
         headers: {
             "Content-Type": "application/json",
@@ -33,7 +33,7 @@ export async function updateTodo(todo: Todo): Promise<Todo> {
 }
 
 export async function deleteTodo(todo: Todo): Promise<void> {
-    const response = await fetch(`${BASE_URL}/lists/${todo.listId}/todos/${todo.id}`, {
+    const response = await fetch(`${BASE_URL}/lists/${todo.list_id}/todos/${todo.id}`, {
         method: "DELETE",
     });
     if (!response.ok) throw new Error("Failed to delete todo");

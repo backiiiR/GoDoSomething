@@ -36,7 +36,8 @@ const TodoItem: React.FC<TodoProps> = ({todo, onEdit, onDelete}) => {
                             <p className="text-gray-600 text-sm mt-1">{todo.additional_info}</p>
                         )}
                         <div className="flex items-center gap-2 text-sm text-gray-500 mt-1">
-                            <span>📅 {new Date(todo.due_date).toLocaleDateString()}</span>
+
+                            <span>📅 {todo.due_date !== "0001-01-01T00:00:00Z" ? new Date(todo.due_date).toLocaleDateString() : ''}</span>
                         </div>
                     </div>
                     <div className={`flex gap-2 ${
