@@ -108,7 +108,6 @@ const TodoFormModal: React.FC<Props> = ({open, onClose, onSubmit, listId, initia
                                 value={dueDate !== '0001-01-01' ? dueDate : ''}
                                 onChange={(e) => setDueDate(e.target.value)}
                                 className="w-full p-2 border rounded-lg"
-                                min={new Date().toISOString().split('T')[0]}
                             />
                         </div>
 

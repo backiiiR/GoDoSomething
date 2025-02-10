@@ -35,7 +35,11 @@ const ListPage: React.FC = () => {
     const handleCreateTodo = async (todo: Omit<Todo, 'id'>) => {
         try {
             const newTodo = await createTodo(todo);
-            setTodos([...todos, newTodo]);
+            setTodos(prevTodos =>
+                [...prevTodos, newTodo].sort((a, b) =>
+                    new Date(a.due_date).getTime() - new Date(b.due_date).getTime()
+                )
+            );
         } catch (error) {
             console.error(error);
         } finally {
@@ -53,7 +57,11 @@ const ListPage: React.FC = () => {
                 ...todo,
                 id,
             });
-            setTodos(todos.map((todo) => (todo.id === id ? updatedTodo : todo)));
+            setTodos(prevTodos =>
+                prevTodos
+                    .map((t) => (t.id === id ? updatedTodo : t))
+                    .sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime())
+            );
         } catch (error) {
             console.error(error);
         } finally {

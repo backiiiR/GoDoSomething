@@ -17,7 +17,7 @@ type Todo struct {
 }
 
 func AllTodosByList(listID int) ([]Todo, error) {
-	rows, err := db.DB.Query("SELECT * FROM todos WHERE list_id = ?", listID)
+	rows, err := db.DB.Query("SELECT * FROM todos WHERE list_id = ? ORDER BY due_date ASC", listID)
 
 	if err != nil {
 		return nil, err
