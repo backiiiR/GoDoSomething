@@ -11,6 +11,16 @@ type List struct {
 	Name string `json:"name"`
 }
 
+func GetList(id int) (List, error) {
+	var list List
+	err := db.DB.QueryRow("SELECT * FROM lists WHERE id = ?", id).Scan(&list.ID, &list.Name)
+	if err != nil {
+		return list, err
+	}
+
+	return list, nil
+}
+
 func GetAllLists() ([]List, error) {
 	rows, err := db.DB.Query("SELECT * FROM lists")
 

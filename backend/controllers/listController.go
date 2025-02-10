@@ -20,6 +20,28 @@ func GetLists(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+func GetList(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	id := params["id"]
+
+	if id == "" {
+		http.Error(w, "Missing list ID", http.StatusBadRequest)
+		return
+	}
+
+	idInt, _ := strconv.Atoi(id)
+
+	list, err := models.GetList(idInt)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(list)
+	w.WriteHeader(http.StatusOK)
+
+}
+
 func CreateList(w http.ResponseWriter, r *http.Request) {
 	var list models.List
 	if err := json.NewDecoder(r.Body).Decode(&list); err != nil {
@@ -39,19 +61,6 @@ func CreateList(w http.ResponseWriter, r *http.Request) {
 }
 
 func UpdateList(w http.ResponseWriter, r *http.Request) {
-	/*var list models.List
-	if err := json.NewDecoder(r.Body).Decode(&list); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	if err := models.UpdateList(list); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)*/
-
 	// Get the list ID from the URL and then update the list
 	params := mux.Vars(r)
 	id := params["id"]

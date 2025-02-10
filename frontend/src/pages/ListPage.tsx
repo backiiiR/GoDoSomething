@@ -4,10 +4,13 @@ import {Todo} from "../types/Todo";
 import {useParams} from "react-router-dom";
 import TodoItem from "../components/TodoItem";
 import TodoFormModal from "../components/TodoFormModal.tsx";
+import {fetchList} from "../api/listApi.ts";
+import {List} from "../types/List.ts";
 
 const ListPage: React.FC = () => {
     const {id} = useParams<{ id: string }>();
     const [todos, setTodos] = useState<Todo[]>([]);
+    const [list, setList] = useState<List | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
 
@@ -15,6 +18,15 @@ const ListPage: React.FC = () => {
         try {
             const todos = await fetchTodos(Number(id));
             setTodos(todos);
+        } catch (error) {
+            console.error(error);
+        }
+    }, [id]);
+
+    const loadList = useCallback(async () => {
+        try {
+            const list = await fetchList(Number(id));
+            setList(list);
         } catch (error) {
             console.error(error);
         }
@@ -68,14 +80,19 @@ const ListPage: React.FC = () => {
     useEffect(() => {
         if (id) {
             loadTodos().then(r => r);
+            loadList().then(r => r);
         }
-    }, [id, loadTodos]);
+    }, [id, loadList, loadTodos]);
 
     return (
         <div className="w-full md:w-2/3 lg:w-3/4">
+            <button
+                onClick={() => history.back()}
+                className=" mb-2 p-2 bg-blue-200 text-white rounded-lg hover:bg-blue-600"
+            >🔙</button>
             <div className="bg-white rounded-lg shadow p-4">
                 <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-2xl font-bold">Todo List</h2>
+                    <h2 className="text-2xl font-bold">List: {list?.name ?? 'not found'}</h2>
                     <button
                         onClick={() => setIsModalOpen(true)}
                         className="p-2 bg-green-500 text-white rounded-lg hover:bg-green-600"

@@ -10,6 +10,7 @@ func InitRoutes() *mux.Router {
 
 	// List routes
 	r.HandleFunc("/lists", controllers.GetLists).Methods("GET")
+	r.HandleFunc("/lists/{id}", controllers.GetList).Methods("GET")
 	r.HandleFunc("/lists", controllers.CreateList).Methods("POST")
 	r.HandleFunc("/lists/{id}", controllers.UpdateList).Methods("PUT")
 	r.HandleFunc("/lists/{id}", controllers.DeleteList).Methods("DELETE")

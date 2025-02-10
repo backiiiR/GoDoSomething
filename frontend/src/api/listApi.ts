@@ -8,6 +8,12 @@ export async function fetchLists(): Promise<List[]> {
     return response.json();
 }
 
+export async function fetchList(id: number): Promise<List> {
+    const response = await fetch(`${BASE_URL}/lists/${id}`);
+    if (!response.ok) throw new Error("Failed to fetch list with id: " + id);
+    return response.json();
+}
+
 export async function createList(name: string): Promise<List> {
     const response = await fetch(`${BASE_URL}/lists`, {
         method: "POST",
