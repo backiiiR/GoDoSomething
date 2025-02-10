@@ -109,13 +109,6 @@ func UpdateTodo(todo Todo, listID int) error {
 }
 
 func DeleteTodo(id int, listID int) error {
-	/*_, err := db.DB.Exec("DELETE FROM todos WHERE id = ?", id)
-	if err != nil {
-		return err
-	}
-
-	return nil*/
-
 	_, err := db.DB.Exec("DELETE FROM todos WHERE id = ? AND list_id = ?", id, listID)
 	if err != nil {
 		return err

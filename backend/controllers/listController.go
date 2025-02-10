@@ -61,7 +61,6 @@ func CreateList(w http.ResponseWriter, r *http.Request) {
 }
 
 func UpdateList(w http.ResponseWriter, r *http.Request) {
-	// Get the list ID from the URL and then update the list
 	params := mux.Vars(r)
 	id := params["id"]
 	if id == "" {
