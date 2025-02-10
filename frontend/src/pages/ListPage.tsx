@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useState} from "react";
 import {createTodo, deleteTodo, fetchTodos, updateTodo} from "../api/todoApi";
 import {Todo} from "../types/Todo";
-import {useParams} from "react-router-dom";
+import {useNavigate, useParams} from "react-router-dom";
 import TodoItem from "../components/TodoItem";
 import TodoFormModal from "../components/TodoFormModal.tsx";
 import {fetchList} from "../api/listApi.ts";
@@ -13,6 +13,9 @@ const ListPage: React.FC = () => {
     const [list, setList] = useState<List | null>(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingTodo, setEditingTodo] = useState<Todo | null>(null);
+    const navigate = useNavigate();
+    const [isLoading, setIsLoading] = useState(true);
+    const [isProcessing, setIsProcessing] = useState(false);
 
     const loadTodos = useCallback(async () => {
         try {
@@ -34,6 +37,7 @@ const ListPage: React.FC = () => {
 
     const handleCreateTodo = async (todo: Omit<Todo, 'id'>) => {
         try {
+            setIsProcessing(true);
             const newTodo = await createTodo(todo);
             setTodos(prevTodos =>
                 [...prevTodos, newTodo].sort((a, b) =>
@@ -43,6 +47,7 @@ const ListPage: React.FC = () => {
         } catch (error) {
             console.error(error);
         } finally {
+            setIsProcessing(false);
             setIsModalOpen(false);
         }
     };
@@ -53,6 +58,7 @@ const ListPage: React.FC = () => {
         const id = editingTodo.id;
 
         try {
+            setIsProcessing(true);
             const updatedTodo = await updateTodo({
                 ...todo,
                 id,
@@ -65,6 +71,7 @@ const ListPage: React.FC = () => {
         } catch (error) {
             console.error(error);
         } finally {
+            setIsProcessing(false);
             setEditingTodo(null);
         }
     };
@@ -78,49 +85,66 @@ const ListPage: React.FC = () => {
         }
 
         try {
+            setIsProcessing(true);
             await deleteTodo(todo);
             setTodos(todos.filter((t) => t.id !== todo.id));
         } catch (error) {
             console.error(error);
+        } finally {
+            setIsProcessing(false);
         }
     };
 
     useEffect(() => {
         if (id) {
-            loadTodos().then(r => r);
-            loadList().then(r => r);
+            setIsLoading(true);
+            Promise.all([loadList(), loadTodos()])
+                .then(() => setIsLoading(false))
+                .catch((error) => {
+                    console.error(error);
+                    setIsLoading(false);
+                });
         }
     }, [id, loadList, loadTodos]);
 
     return (
         <div className="w-full md:w-2/3 lg:w-3/4">
             <button
-                onClick={() => history.back()}
+                onClick={() => {
+                    navigate('/');
+                }}
                 className=" mb-2 p-2 bg-blue-200 text-white rounded-lg hover:bg-blue-600"
             >🔙</button>
             <div className="bg-white rounded-lg shadow p-4">
-                <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-2xl font-bold">List: {list?.name ?? 'not found'}</h2>
-                    <button
-                        onClick={() => setIsModalOpen(true)}
-                        className="p-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
-                    >
-                        Add Todo
-                    </button>
-                </div>
-                <div className="space-y-3">
-                    {todos.map((todo) => (
-                        <TodoItem
-                            key={todo.id}
-                            todo={todo}
-                            onEdit={() => {
-                                setEditingTodo(todo);
-                                setIsModalOpen(true);
-                            }}
-                            onDelete={handleDelete}
-                        />
-                    ))}
-                </div>
+                {isLoading ? (
+                    <div className="text-center text-gray-500">Loading...</div>
+                ) : (
+                    <>
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-2xl font-bold">List: {list?.name ?? 'not found'}</h2>
+                            <button
+                                onClick={() => setIsModalOpen(true)}
+                                className="p-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+                                disabled={isProcessing}
+                            >
+                                {isProcessing ? 'Processing...' : 'Add Todo'}
+                            </button>
+                        </div>
+                        <div className="space-y-3">
+                            {todos.map((todo) => (
+                                <TodoItem
+                                    key={todo.id}
+                                    todo={todo}
+                                    onEdit={() => {
+                                        setEditingTodo(todo);
+                                        setIsModalOpen(true);
+                                    }}
+                                    onDelete={handleDelete}
+                                />
+                            ))}
+                        </div>
+                    </>
+                )}
             </div>
 
             <TodoFormModal

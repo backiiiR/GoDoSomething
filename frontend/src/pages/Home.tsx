@@ -8,14 +8,18 @@ const Home: React.FC = () => {
     const [lists, setLists] = useState<List[]>([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingList, setEditingList] = useState<List | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isProcessing, setIsProcessing] = useState(false);
 
     const handleCreateList = async (name: string) => {
         try {
+            setIsProcessing(true);
             const newList = await createList(name);
             setLists([...lists, newList]);
         } catch (error) {
             console.error(error);
         } finally {
+            setIsProcessing(false);
             setIsModalOpen(false);
         }
     };
@@ -26,28 +30,40 @@ const Home: React.FC = () => {
         const id = editingList.id;
 
         try {
+            setIsProcessing(true);
             const updatedList = await updateList(id, name);
             setLists(lists.map((list) => (list.id === id ? updatedList : list)));
         } catch (error) {
             console.error(error);
         } finally {
+            setIsProcessing(false);
             setEditingList(null);
         }
     };
 
     const handleDeleteList = async (id: number) => {
         try {
+            setIsProcessing(true);
             await deleteList(id);
             setLists(lists.filter((list) => list.id !== id));
         } catch (error) {
             console.error(error);
+        } finally {
+            setIsProcessing(false);
         }
     };
 
     useEffect(() => {
-        fetchLists()
-            .then(setLists)
-            .catch(console.error);
+        setIsLoading(true);
+        Promise.all([fetchLists()])
+            .then((r) => {
+                setLists(r[0]);
+                setIsLoading(false);
+            })
+            .catch(() => {
+                setIsLoading(false);
+                console.error("Failed to fetch lists");
+            })
     }, []);
 
     return (
@@ -59,22 +75,29 @@ const Home: React.FC = () => {
                         <button
                             onClick={() => setIsModalOpen(true)}
                             className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                            disabled={isProcessing}
                         >
-                            New List
+                            {isProcessing ? 'Processing...' : 'New List'}
                         </button>
                     </div>
                     <div className="space-y-2">
-                        {lists.map((list) => (
-                            <ListItem
-                                key={list.id}
-                                list={list}
-                                onEdit={() => {
-                                    setEditingList(list);
-                                    setIsModalOpen(true);
-                                }}
-                                onDelete={handleDeleteList}
-                            />
-                        ))}
+                        {isLoading ? (
+                            <div className="text-center text-gray-500">Loading...</div>
+                        ) : (
+                            <>
+                                {lists.map((list) => (
+                                    <ListItem
+                                        key={list.id}
+                                        list={list}
+                                        onEdit={() => {
+                                            setEditingList(list);
+                                            setIsModalOpen(true);
+                                        }}
+                                        onDelete={handleDeleteList}
+                                    />
+                                ))}
+                            </>
+                        )}
                     </div>
                 </div>
             </div>
